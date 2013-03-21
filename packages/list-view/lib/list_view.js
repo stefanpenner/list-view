@@ -85,16 +85,20 @@ Ember.ListViewMixin = Ember.Mixin.create({
     childView.prepareForReuse();
   },
 
-  _reuseChildForContentIndex: function(childView, contentIndex) {
+  _reuseChildForContentIndex: function(childView, contentIndex, options) {
 
     this._prepareChildForReuse(childView);
+
+    options = options || {};
 
     var content = get(this, 'content');
     var childsCurrentContentIndex = get(childView, 'contentIndex');
 
-    set(childView, 'top', get(this, 'rowHeight') * contentIndex);
-    set(childView, 'context', content.objectAt(contentIndex));
-    set(childView, 'contentIndex', contentIndex);
+    if (childsCurrentContentIndex !== contentIndex || options.force) {
+      set(childView, 'top', get(this, 'rowHeight') * contentIndex);
+      set(childView, 'context', content.objectAt(contentIndex));
+      set(childView, 'contentIndex', contentIndex);
+    }
   },
 
   _numOfChildViews: function() {
@@ -214,10 +218,7 @@ Ember.ListViewMixin = Ember.Mixin.create({
 
           if(childView.prepareForReuse){ // hack
             contentIndex = this._lastStartingIndex + index;
-
-            // we can likely be only cause a context change for the ones that changes
-            // and re-position the rest
-            this._reuseChildForContentIndex(childView, contentIndex);
+            this._reuseChildForContentIndex(childView, contentIndex, { force: true });
             index++;
           }
         }, this);
