@@ -58,7 +58,7 @@ Ember.ListViewMixin = Ember.Mixin.create({
         childViews = this,
         childViewsLength = get(this, 'length') - 1, // account for scrollingView
         startingIndex = this._startingIndex(),
-        endingIndex = startingIndex + this._numOfChildViewsForHeight(),
+        endingIndex = Math.min(contentLength, startingIndex + this._numOfChildViewsForHeight()),
         childView, attrs;
 
     if (startingIndex === this._lastStartingIndex && endingIndex === this._lastEndingIndex) { return; }
