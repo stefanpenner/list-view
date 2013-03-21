@@ -181,7 +181,7 @@ Ember.ListViewMixin = Ember.Mixin.create({
       var that = this,
       childViewsLength = get(this, 'childViews.length');
 
-      this.positionOrderdChildViews().
+      this.positionOrderedChildViews().
         splice(numOfChildViewsNeeded, childViewsLength).
         forEach(function(childView){
           that.removeObject(childView);
@@ -195,7 +195,7 @@ Ember.ListViewMixin = Ember.Mixin.create({
     this.childViewsDidSync();
   },
 
-  positionOrderdChildViews: function() {
+  positionOrderedChildViews: function() {
 
     var childViews = get(this, 'childViews');
 
@@ -214,7 +214,7 @@ Ember.ListViewMixin = Ember.Mixin.create({
       // TODO: clean this up .... less hacks
       if( start >= this._lastStartingIndex || start < this._lastEndingIndex) {
         var index = 0, contentIndex;
-        this.positionOrderdChildViews().forEach(function(childView){
+        this.positionOrderedChildViews().forEach(function(childView){
 
           if(childView.prepareForReuse){ // hack
             contentIndex = this._lastStartingIndex + index;
