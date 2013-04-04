@@ -357,12 +357,18 @@ Ember.VirtualListView = Ember.ContainerView.extend(Ember.ListViewMixin, {
   }).property('totalHeight')
 });
 
+var template = '';
+template += '{{#collection view.scrollingViewClass contentBinding="controller"}}';
+template += '  {{yield}}';
+template += '{{/collection}}';
+
 Ember.ListView = Ember.View.extend({
-  layoutName: 'list_view',
+  layout: Ember.Handlebars.compile(template),
   classNames: ['ember-list-container-view'],
   attributeBindings: ['style'],
   height: null,
   rowHeight: null,
+  scrollingViewClass: Ember.NativeListView,
   strategy: null,
 
   init: function(){
@@ -370,9 +376,13 @@ Ember.ListView = Ember.View.extend({
     this.strategy = get(this, 'scrollingViewClass');
   },
 
-  scrollingView: (function(){
+  _numChildViewsForViewport: function(){
+    return get(this, 'scrollingViewClass')._numChildViewsForViewport();
+  },
+
+  scrollingView: Ember.computed(function(){
     return Ember.View.views[this.$('.ember-list-view').attr('id')];
-  }).property(),
+  }),
 
   style: Ember.computed(function() {
     return "height: " + get(this, 'height') + "px; width: 100%;overflow: hidden";
@@ -406,6 +416,7 @@ Ember.ListView = Ember.View.extend({
     console.log(e);
   },
 
+  // hack for now
   mouseWheel: function(e){
     var scrollingView, element;
 
@@ -422,7 +433,7 @@ Ember.ListView = Ember.View.extend({
       this.y += e.wheelDeltaY;
     }
 
-    if (this.y > - 1) { this.y = 0 }
+    if (this.y > - 1) { this.y = 0; }
 
     var a = Math.abs(this.y);
 
@@ -433,7 +444,6 @@ Ember.ListView = Ember.View.extend({
       e.preventDefault();
       return false;
     } else {
-      var a = $(e.target).closest('.ember-list-view').scrollTop();
     }
   }
 });

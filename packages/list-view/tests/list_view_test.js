@@ -1,4 +1,4 @@
-var view, css;
+var view, css, template;
 
 module("Ember.ListView integration", {
   setup: function() {
@@ -14,6 +14,7 @@ module("Ember.ListView integration", {
             "  background: red;" +
             "}" +
             "</style>").appendTo('head');
+
   },
   teardown: function() {
     css.remove();
@@ -129,7 +130,7 @@ test("totalHeight: single column", function(){
     });
   });
 
-  equal(view.get('totalHeight'), 1000);
+  equal(view.get('scrollingView.totalHeight'), 1000);
 });
 
 test("totalHeight: even", function(){
