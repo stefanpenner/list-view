@@ -29,8 +29,16 @@
     <img height="50px" width="50px" {{bindAttr src="imageSrc"}} class="hidden"/>
     <script type="text/x-handlebars">
       {{#group}}
-      {{#collection Ember.ListView contentBinding="controller" height=700 width=400 rowHeight=50 elementWidth=200}}
-      {{name}}
+      {{#view Ember.ListView scrollingViewClassBinding="Ember.NativeListView" height=400 rowHeight=50}}
+        {{name}}
+      {{/view}}
+      {{/group}}
+    </script>
+
+    <script type="text/x-handlebars" data-template-name="list_view">
+      {{#group}}
+      {{#collection view.scrollingViewClass contentBinding="controller"}}
+        {{yield}}
       {{/collection}}
       {{/group}}
     </script>

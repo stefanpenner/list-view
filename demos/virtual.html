@@ -6,11 +6,18 @@
       html {
         font-family: sans-serif;
       }
+
+      .ember-list-container-view{
+        border: 1px solid green;
+      }
+
       .ember-list-view {
         overflow: auto;
         position: relative;
         width: 100%;
+        background: red;
       }
+
       .ember-list-item-view {
         position: absolute;
       }
@@ -25,12 +32,16 @@
   <body>
     <script type="text/x-handlebars">
       {{#group}}
-      {{#collection Ember.VirtualListView contentBinding="controller" height=480 rowHeight=50}}
-        <img height="50px" width="50px" {{bindAttr src="imageSrc"}}/>
+      {{#view Ember.ListView scrollingViewClassBinding="Ember.VirtualListView" height=400 rowHeight=50}}
         {{name}}
-        {{name}}
-        {{name}}
-        {{name}}
+      {{/view}}
+      {{/group}}
+    </script>
+
+    <script type="text/x-handlebars" data-template-name="list_view">
+      {{#group}}
+      {{#collection view.scrollingViewClass contentBinding="controller"}}
+        {{yield}}
       {{/collection}}
       {{/group}}
     </script>
