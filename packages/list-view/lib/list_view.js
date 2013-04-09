@@ -41,6 +41,16 @@ Ember.ListViewMixin = Ember.Mixin.create({
     addContentArrayObserver.call(this);
     this._syncChildViews();
     this.columnCountDidChange();
+    this.domManager.prepend = function(view, html) {
+      view.$('.ember-list-container').prepend(html);
+      notifyMutationListeners();
+    };
+  },
+
+  render: function(buffer) {
+    buffer.push('<div class="ember-list-container">');
+    this._super(buffer);
+    buffer.push('</div>');
   },
 
   style: Ember.computed('height', 'width', function() {
@@ -48,8 +58,18 @@ Ember.ListViewMixin = Ember.Mixin.create({
 
     height = get(this, 'height');
     width = get(this, 'width');
+    css = get(this, 'css');
 
-    style = "height:" + height + "px;" + 'width:' + width  + 'px;';
+    style = '';
+
+    if (height) { style += 'height:' + height + 'px;'; }
+    if (width)  { style += 'width:'  + width  + 'px;'; }
+
+    for ( var rule in css ){
+      if (css.hasOwnProperty(rule)) {
+        style += rule + ':' + css[rule] + ';';
+      }
+    }
 
     return style;
   }),
@@ -380,21 +400,12 @@ function notifyMutationListeners() {
 }
 
 Ember.ListView = Ember.ContainerView.extend(Ember.ListViewMixin, {
-  init: function(){
-    this._super();
-    // overwrite the view's domManager.prepend to prepend inside the wrapper div
-    this.domManager.prepend = function(view, html) {
-      view.$('.ember-list-container').prepend(html);
-      notifyMutationListeners();
-    };
+  css: {
+    position: 'relative',
+    overflow: 'scroll',
+    '-webkit-overflow-scrolling': 'touch',
+    'overflow-scrolling': 'touch'
   },
-
-  render: function(buffer) {
-    buffer.push('<div class="ember-list-container">');
-    this._super(buffer);
-    buffer.push('</div>');
-  },
-
   childViewsWillSync: function(){
     var scrollingView;
 
@@ -418,6 +429,10 @@ Ember.ListView = Ember.ContainerView.extend(Ember.ListViewMixin, {
 });
 
 Ember.VirtualListView = Ember.ContainerView.extend(Ember.ListViewMixin, {
+  css: {
+    position: 'relative',
+    overflow: 'hidden'
+  },
   touchMove: function(e){
     e.preventDefault();
 
@@ -425,10 +440,49 @@ Ember.VirtualListView = Ember.ContainerView.extend(Ember.ListViewMixin, {
     // call scroller library
   },
 
+  didInsertElement: function() {
+    var self, element;
+
+    self = this;
+    element = this.$('> .ember-list-container')[0];
+
+    self._scroll = function(e) { self.scroll(e); };
+    self._touchMove = function(e) { self.touchMove(e); };
+    self._mouseWheel = function(e) { self.mouseWheel(e); };
+
+    element.addEventListener('scroll',     this._scroll);
+    element.addEventListener('touchmove',  this._touchMove);
+    element.addEventListener('mousewheel', this._mouseWheel);
+  },
+
+  willDestroyElement: function() {
+    var element;
+
+    element = this.$('> .ember-list-container')[0];
+
+    element.removeEventListener('scroll', this._scroll);
+    element.removeEventListener('touchmove', this._touchMove);
+    element.removeEventListener('mousewheel', this._mouseWheel);
+  },
+
   mouseWheel: function(e){
     e.preventDefault();
 
-    console.log('Attempt mouseWheel');
-    // call scroller library
+    var inverted = e.webkitDirectionInvertedFromDevice;
+    var element = this.$('> .ember-list-container')[0];
+
+    this.y = this.y || 0;
+
+    if (inverted) {
+      this.y -= e.wheelDeltaY;
+    } else {
+      this.y += e.wheelDeltaY;
+    }
+
+    if (this.y > -1) { this.y = 0; }
+
+    element.style.webkitTransform = 'translate3d( 0px, ' + this.y + 'px, 0)';
+    this.scrollTo(Math.abs(this.y));
+    return false;
   }
 });
