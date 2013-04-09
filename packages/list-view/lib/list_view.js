@@ -39,6 +39,7 @@ Ember.ListViewMixin = Ember.Mixin.create({
   itemViewClass: Ember.ListItemView,
   classNames: ['ember-list-view'],
   attributeBindings: ['style'],
+  domManager: domManager,
   scrollTop: 0,
   _lastEndingIndex: 0,
   paddingCount: 1, // One row for padding
@@ -247,7 +248,7 @@ Ember.ListViewMixin = Ember.Mixin.create({
     totalHeight = get(this, 'totalHeight'),
     viewportHeight = get(this, 'height');
 
-    return totalHeight - viewportHeight;
+    return max(0, totalHeight - viewportHeight);
   }),
 
   _numChildViewsForViewport: function() {
@@ -409,6 +410,11 @@ Ember.ListView = Ember.ContainerView.extend(Ember.ListViewMixin, {
     overflow: 'scroll',
     '-webkit-overflow-scrolling': 'touch',
     'overflow-scrolling': 'touch'
+  },
+  render: function(buffer) {
+    buffer.push('<div class="ember-list-container">');
+    this._super(buffer);
+    buffer.push('</div>');
   },
   childViewsWillSync: function(){
     var scrollingView;

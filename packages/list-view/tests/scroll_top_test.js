@@ -8,7 +8,7 @@ function appendView() {
   });
 }
 
-module("Ember.ListView unit: - startingIndex", {
+module("Ember.ListView unit: - scrollTop", {
   teardown: function() {
     Ember.run(function() {
       if (view) { view.destroy(); }
@@ -28,7 +28,13 @@ test("base case", function(){
     scrollTop: 0
   });
 
-  equal(view._startingIndex(), 0);
+  equal(view.get('scrollTop'), 0);
+
+  Ember.run(function(){
+    view.set('width', 150);
+  });
+
+  equal(view.get('scrollTop'), 0);
 });
 
 test("scroll but within content length", function(){
@@ -43,7 +49,13 @@ test("scroll but within content length", function(){
     scrollTop: 100
   });
 
-  equal(view._startingIndex(), 4);
+  equal(view.get('scrollTop'), 100);
+
+  Ember.run(function(){
+    view.set('width', 150);
+  });
+
+  equal(view.get('scrollTop'), 0);
 });
 
 test("scroll but beyond content length", function(){
@@ -58,6 +70,12 @@ test("scroll but beyond content length", function(){
     scrollTop: 1000
   });
 
-  equal(view._startingIndex(), 4);
+  equal(view.get('scrollTop'), 1000);
+
+  Ember.run(function(){
+    view.set('width', 150);
+  });
+
+  equal(view.get('scrollTop'), 0);
 });
 
