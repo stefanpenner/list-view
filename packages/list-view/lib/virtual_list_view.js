@@ -53,7 +53,7 @@ Ember.VirtualListView = Ember.ContainerView.extend(Ember.ListViewMixin, {
 
   scrollerDimensionsNeedToChange: Ember.observer(function() {
     Ember.run.once(this, updateScrollerDimensions);
-  }, 'width', 'height', 'elementWidth'),
+  }, 'width', 'height', 'totalHeight'),
 
   didInsertElement: function() {
     var self, listContainerElement, el;
