@@ -96,9 +96,5 @@ Ember.ListItemView = Ember.View.extend({
 
   applyTransform: Ember.ListViewHelper.applyTransform,
   positionDidChange: Ember.observer(updateStyle, 'position'),
-  didInsertElement: updateStyle,
-
-  prepareForReuse: function() {
-    this._position = null;
-  }
+  didInsertElement: updateStyle
 });
