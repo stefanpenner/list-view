@@ -183,10 +183,10 @@ Ember.ListViewMixin = Ember.Mixin.create({
   style: Ember.computed('height', 'width', function() {
     var height, width, style;
 
-    height = get(this, 'height');
-    width = get(this, 'width');
+    height = get(this, 'height') || '500';
+    width  = get(this, 'width')  || '500';
 
-    style = "height:" + height + "px;" + 'width:' + width  + 'px;';
+    style = 'height:' + height + 'px;' + 'width:' + width  + 'px;';
 
     return style;
   }),
