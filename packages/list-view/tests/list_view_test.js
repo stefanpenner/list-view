@@ -33,7 +33,9 @@ module("Ember.ListView Acceptance", {
 });
 
 test("should exist", function() {
-  view = Ember.ListView.create();
+  view = Ember.ListView.create({
+    height: 500
+  });
   appendView();
   ok(view);
 });
@@ -66,6 +68,22 @@ test("should render a subset of the full content, based on the height, in the co
 
   deepEqual(helper.itemPositions(view).map(yPosition), [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]);
 });
+
+// test("should throw an error if no height is specified", function() {
+//   var content = helper.generateContent(100),
+//       rowHeight = 50,
+//       itemViewClass = Ember.ListItemView.extend({
+//         template: Ember.Handlebars.compile("{{name}}")
+//       });
+
+//   raises(function () {
+//     view = Ember.ListView.create({
+//       content: content,
+//       rowHeight: rowHeight,
+//       itemViewClass: itemViewClass
+//     });
+//   });
+// });
 
 test("should render correctly with an initial scrollTop", function() {
   var content = helper.generateContent(100),

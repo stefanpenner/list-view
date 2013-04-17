@@ -52,6 +52,7 @@ Ember.ListViewMixin = Ember.Mixin.create({
 
   init: function() {
     this._super();
+    this._validateParameters();
     addContentArrayObserver.call(this);
     this._syncChildViews();
     this.columnCountDidChange();
@@ -61,9 +62,13 @@ Ember.ListViewMixin = Ember.Mixin.create({
     var height, width, style;
 
     height = get(this, 'height');
-    width = get(this, 'width');
+    width  = get(this, 'width');
 
-    style = "height:" + height + "px;" + 'width:' + width  + 'px;';
+    style = 'height:' + height + 'px;';
+
+    if (!Ember.isNone(width)) {
+      style += 'width:' + width  + 'px;';
+    }
 
     return style;
   }),
@@ -154,6 +159,12 @@ Ember.ListViewMixin = Ember.Mixin.create({
 
     return (ceil(contentLength / columnCount)) * rowHeight;
   }),
+
+  _validateParameters: function () {
+    var height;
+    height = get(this, 'height');
+    Ember.assert('You must specify the height of Ember.ListView: ' + this.get('elementId'), height);
+  },
 
   _prepareChildForReuse: function(childView) {
     childView.prepareForReuse();
