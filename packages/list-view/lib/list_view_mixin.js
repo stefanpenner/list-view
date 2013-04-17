@@ -1,6 +1,5 @@
-require('list-view/list_view_mixin');
+require('list-view/list_item_view');
 
-<<<<<<< HEAD
 var get = Ember.get, set = Ember.set,
 min = Math.min, max = Math.max, floor = Math.floor,
 ceil = Math.ceil;
@@ -29,6 +28,12 @@ function detectListItemViews(childView) {
   return Ember.ListItemView.detectInstance(childView);
 }
 
+function notifyMutationListeners() {
+  if (Ember.View.notifyMutationListeners) {
+    Ember.run.once(Ember.View, 'notifyMutationListeners');
+  }
+}
+
 var domManager = Ember.create(Ember.ContainerView.proto().domManager);
 
 domManager.prepend = function(view, html) {
@@ -36,126 +41,91 @@ domManager.prepend = function(view, html) {
   notifyMutationListeners();
 };
 
-/**
-  ListViewMixin
+function syncListContainerWidth(){
+  var elementWidth, columnCount, containerWidth, element;
 
-  @class ListViewMixin
-  @namespace Ember
-*/
+  elementWidth = get(this, 'elementWidth');
+  columnCount = get(this, 'columnCount');
+  containerWidth = elementWidth * columnCount;
+  element = this.$('.ember-list-container');
+
+  if (containerWidth && element) {
+    element.css('width', containerWidth);
+  }
+}
+
 Ember.ListViewMixin = Ember.Mixin.create({
   itemViewClass: Ember.ListItemView,
   classNames: ['ember-list-view'],
   attributeBindings: ['style'],
   domManager: domManager,
   scrollTop: 0,
+  bottomPadding: 0,
   _lastEndingIndex: 0,
   paddingCount: 1, // One row for padding
 
   init: function() {
     this._super();
-    this._validateParameters();
     addContentArrayObserver.call(this);
     this._syncChildViews();
     this.columnCountDidChange();
+    this.on('didInsertElement', syncListContainerWidth);
   },
-  /**
-    Ember.ComputedProperty
 
-    @property style
-    @for Ember.ListView
-    @type String
-  */
+  render: function(buffer) {
+    buffer.push('<div class="ember-list-container">');
+    this._super(buffer);
+    buffer.push('</div>');
+  },
+
   style: Ember.computed('height', 'width', function() {
-    var height, width, style;
+    var height, width, style, css;
 
     height = get(this, 'height');
-    width  = get(this, 'width');
+    width = get(this, 'width');
+    css = get(this, 'css');
 
-    style = 'height:' + height + 'px;';
+    style = '';
 
-    if (!Ember.isNone(width)) {
-      style += 'width:' + width  + 'px;';
+    if (height) { style += 'height:' + height + 'px;'; }
+    if (width)  { style += 'width:'  + width  + 'px;'; }
+
+    for ( var rule in css ){
+      if (css.hasOwnProperty(rule)) {
+        style += rule + ':' + css[rule] + ';';
+      }
     }
 
     return style;
   }),
 
-  /**
-    Called when the element of the view has been inserted into the DOM
-    or after the view was re-rendered. Override this function to do any
-    set up that requires an element in the document body.
-
-    @event didInsertElement
-  */
-  didInsertElement: function() {
-    var self, element;
-
-    self = this,
-    element = get(this, 'element');
-
-    self._scroll = function(e) { self.scroll(e); };
-    self._touchMove = function(e) { self.touchMove(e); };
-    self._mouseWheel = function(e) { self.mouseWheel(e); };
-
-    element.addEventListener('scroll',     this._scroll);
-    element.addEventListener('touchmove',  this._touchMove);
-    element.addEventListener('mousewheel', this._mouseWheel);
+  scrollTo: function(y) {
+    throw "must override to perform the visual scroll and effectively delegate to _scrollContentTo";
   },
 
-  touchMove: Ember.K,
-  mouseWheel: Ember.K,
-
-  /**
-    Called when the element of the view is going to be destroyed. Override
-    this function to do any teardown that requires an element, like removing
-    event listeners.
-
-    @event willDestroyElement
-  */
-  willDestroyElement: function() {
-    var element;
-
-    element = get(this, 'element');
-
-    element.removeEventListener('scroll', this._scroll);
-    element.removeEventListener('touchmove', this._touchMove);
-    element.removeEventListener('mousewheel', this._mouseWheel);
-  },
-
-  // Browser fires the scroll event asynchronously
-  scroll: function(e) {
-    Ember.run(this, this.scrollTo, e.target.scrollTop);
-  },
-
-  scrollTo: function(scrollTop, options) {
-    var contentLength, childViews, childViewsLength,
-        startingIndex, endingIndex, childView, attrs,
+  _scrollContentTo: function(scrollTop) {
+    var startingIndex, endingIndex,
         contentIndex, visibleEndingIndex, maxContentIndex,
-        contentIndexEnd;
+        contentIndexEnd, contentLength;
 
-    options = options || { };
-
-    set(this, 'scrollTop', scrollTop);
     contentLength = get(this, 'content.length');
+    set(this, 'scrollTop', scrollTop);
+
     maxContentIndex = max(contentLength - 1, 0);
-    childViews = get(this, 'listItemViews');
-    childViewsLength =  childViews.length;
 
     startingIndex = this._startingIndex();
     visibleEndingIndex = startingIndex + this._numChildViewsForViewport();
 
     endingIndex = min(maxContentIndex, visibleEndingIndex);
 
-    if (!options.force && startingIndex === this._lastStartingIndex && endingIndex === this._lastEndingIndex) {
+    this.trigger('scrollContentTo', scrollTop);
+
+    if (startingIndex === this._lastStartingIndex &&
+        endingIndex === this._lastEndingIndex) {
       return;
     }
 
-    contentIndexEnd = min(visibleEndingIndex, startingIndex + childViewsLength);
-
-    for (contentIndex = startingIndex; contentIndex < contentIndexEnd; contentIndex++) {
-      childView = childViews[contentIndex % childViewsLength];
-      this._reuseChildForContentIndex(childView, contentIndex, options);
-    }
+    this._reuseChildren();
 
     this._lastStartingIndex = startingIndex;
     this._lastEndingIndex = endingIndex;
@@ -163,48 +133,38 @@ Ember.ListViewMixin = Ember.Mixin.create({
 
   childViewsWillSync: Ember.K,
   childViewsDidSync: Ember.K,
-  /**
-    Ember.ComputedProperty
 
-    @property totalHeight
-    @for Ember.ListView
-    @type Number
-  */
-  totalHeight: Ember.computed('content.length', 'rowHeight', 'columnCount', function() {
-    var contentLength, rowHeight, columnCount;
+  totalHeight: Ember.computed('content.length', 'rowHeight', 'columnCount', 'bottomPadding', function() {
+    var contentLength, rowHeight, columnCount, bottomPadding;
 
     contentLength = get(this, 'content.length');
     rowHeight = get(this, 'rowHeight');
     columnCount = get(this, 'columnCount');
+    bottomPadding = get(this, 'bottomPadding');
 
-    return (ceil(contentLength / columnCount)) * rowHeight;
+    return ((ceil(contentLength / columnCount)) * rowHeight) + bottomPadding;
   }),
-
-  _validateParameters: function () {
-    var height;
-    height = get(this, 'height');
-    Ember.assert('You must specify the height of Ember.ListView: ' + this.get('elementId'), height);
-  },
 
   _prepareChildForReuse: function(childView) {
     childView.prepareForReuse();
   },
 
-  _reuseChildForContentIndex: function(childView, contentIndex, options) {
-    var content, childsCurrentContentIndex, position;
+  _reuseChildForContentIndex: function(childView, contentIndex) {
+    var content, context, newContext, childsCurrentContentIndex, position;
 
     content = get(this, 'content');
+    context = get(childView, 'context');
+    newContext = content.objectAt(contentIndex);
+
     childsCurrentContentIndex = get(childView, 'contentIndex');
 
-    options = options || {};
-    this._prepareChildForReuse(childView);
+    position = this.positionForIndex(contentIndex);
 
-    if (childsCurrentContentIndex !== contentIndex || options.force) {
-      position = this.positionForIndex(contentIndex);
+    set(childView, 'position', position);
 
-      set(childView, 'position', position);
+    if (childsCurrentContentIndex !== contentIndex || newContext !== context) {
       set(childView, 'contentIndex', contentIndex);
-      set(childView, 'context', content.objectAt(contentIndex));
+      set(childView, 'context', newContext);
     }
   },
 
@@ -233,13 +193,7 @@ Ember.ListViewMixin = Ember.Mixin.create({
 
     return min(contentLength, childViewCountForHeight);
   },
-  /**
-    Ember.ComputedProperty
 
-    @property columnCount
-    @for Ember.ListView
-    @type Number
-  */
   columnCount: Ember.computed('width', 'elementWidth', function() {
     var elementWidth, width, count;
 
@@ -257,13 +211,14 @@ Ember.ListViewMixin = Ember.Mixin.create({
 
   columnCountDidChange: Ember.observer(function(){
     var ratio, currentScrollTop, proposedScrollTop, maxScrollTop,
-        scrollTop, lastColumnCount, newColumnCount;
+        scrollTop, lastColumnCount, newColumnCount, element;
 
     lastColumnCount = this._lastColumnCount;
 
     currentScrollTop = get(this, 'scrollTop');
     newColumnCount = get(this, 'columnCount');
     maxScrollTop = get(this, 'maxScrollTop');
+    element = get(this, 'element');
 
     this._lastColumnCount = newColumnCount;
 
@@ -272,6 +227,13 @@ Ember.ListViewMixin = Ember.Mixin.create({
       proposedScrollTop = currentScrollTop * ratio;
       scrollTop = min(maxScrollTop, proposedScrollTop);
       set(this, 'scrollTop', scrollTop);
+
+      if (element) { element.scrollTop = scrollTop; }
+    }
+
+    if (arguments.length > 0) {
+      // invoked by observer
+      Ember.run.schedule('afterRender', this, syncListContainerWidth);
     }
   }, 'columnCount'),
 
@@ -326,7 +288,7 @@ Ember.ListViewMixin = Ember.Mixin.create({
     syncChildViews.call(this);
   }, 'content'),
 
-  heightOrWidthDidChange: Ember.observer(syncChildViews, 'height', 'width'),
+  needsSyncChildViews: Ember.observer(syncChildViews, 'height', 'width', 'columnCount'),
 
   _addItemView: function(contentIndex){
     var itemViewClass, childView;
@@ -340,18 +302,20 @@ Ember.ListViewMixin = Ember.Mixin.create({
    },
 
   /**
-    Intelligently manages the number of childviews.
+   @private
 
-    @private
-    @method _syncChildViews
-  */
+   Intelligently manages the number of childviews.
+
+   @method _syncChildViews
+   **/
   _syncChildViews: function(){
     var itemViewClass, startingIndex, childViewCount,
         endingIndex, numberOfChildViews, numberOfChildViewsNeeded,
         childViews, count, delta, index, childViewsLength, contentIndex;
 
-    // guard against height and width change, followed by destroy in the same runloop
-    if (this.state === 'destroyed') { return; }
+    if (get(this, 'isDestroyed') || get(this, 'isDestroying')) {
+      return;
+    }
 
     this.childViewsWillSync();
 
@@ -368,25 +332,56 @@ Ember.ListViewMixin = Ember.Mixin.create({
 
     if (delta === 0) {
       // no change
-    } else if (delta > 0) { // more views are needed
+    } else if (delta > 0) {
+      // more views are needed
       contentIndex = this._lastEndingIndex;
 
       for (count = 0; count < delta; count++, contentIndex++) {
         this._addItemView(contentIndex);
       }
 
-    } else { // less views are needed
+    } else {
+      // less views are needed
       childViews.
         splice(numberOfChildViewsNeeded, numberOfChildViews).
         forEach(removeAndDestroy, this);
     }
 
-    this.scrollTo(get(this, 'scrollTop'), { force: true });
+    this._scrollContentTo(get(this, 'scrollTop'));
+
+    this._reuseChildren();
 
     this._lastStartingIndex = startingIndex;
     this._lastEndingIndex   = this._lastEndingIndex + delta;
 
     this.childViewsDidSync();
+  },
+
+  _reuseChildren: function(){
+    var contentLength, childViews, childViewsLength,
+        startingIndex, endingIndex, childView, attrs,
+        contentIndex, visibleEndingIndex, maxContentIndex,
+        contentIndexEnd, scrollTop;
+
+    scrollTop = get(this, 'scrollTop');
+    contentLength = get(this, 'content.length');
+    maxContentIndex = max(contentLength - 1, 0);
+    childViews = get(this, 'listItemViews');
+    childViewsLength =  childViews.length;
+
+    startingIndex = this._startingIndex();
+    visibleEndingIndex = startingIndex + this._numChildViewsForViewport();
+
+    endingIndex = min(maxContentIndex, visibleEndingIndex);
+
+    this.trigger('scrollContentTo', scrollTop);
+
+    contentIndexEnd = min(visibleEndingIndex, startingIndex + childViewsLength);
+
+    for (contentIndex = startingIndex; contentIndex < contentIndexEnd; contentIndex++) {
+      childView = childViews[contentIndex % childViewsLength];
+      this._reuseChildForContentIndex(childView, contentIndex);
+    }
   },
 
   listItemViews: Ember.computed('[]', function(){
@@ -408,73 +403,16 @@ Ember.ListViewMixin = Ember.Mixin.create({
       if( start >= this._lastStartingIndex || start < this._lastEndingIndex) {
         index = 0;
         // ignore all changes not in the visible range
+        // this can re-position many, rather then causing a cascade of re-renders
         this.positionOrderedChildViews().
-          slice(start, start + addedCount).
           forEach(function(childView){
             contentIndex = this._lastStartingIndex + index;
-            this._reuseChildForContentIndex(childView, contentIndex, { force: true });
+            this._reuseChildForContentIndex(childView, contentIndex);
             index++;
           }, this);
       }
 
       syncChildViews.call(this);
     }
-  }
-});
-=======
-var get = Ember.get, set = Ember.set;
->>>>>>> 97753fb4a07666a7c790979322ce50fafdf9d1ff
-
-function createScrollingView(){
-  return Ember.View.createWithMixins({
-    attributeBindings: ['style'],
-    classNames: ['ember-list-scrolling-view'],
-
-    style: Ember.computed(function() {
-      return "height: " + get(this, 'parentView.totalHeight') + "px";
-    }).property('parentView.totalHeight')
-  });
-}
-
-/**
-  The `Ember.ListView` renders a
-  [div](https://developer.mozilla.org/en-US/docs/HTML/Element/div) element.
-  Note, this div will have `ember-list-view` CSS class associated with it.
-  This class is required.
-
-  @class ListView
-  @namespace Ember
-*/
-Ember.ListView = Ember.ContainerView.extend(Ember.ListViewMixin, {
-  css: {
-    position: 'relative',
-    overflow: 'scroll',
-    '-webkit-overflow-scrolling': 'touch',
-    'overflow-scrolling': 'touch'
-  },
-
-  scrollTo: function(y){
-    var element = get(this, 'element');
-    element.scrollTop = y;
-    this._scrollContentTo(y);
-  },
-
-  childViewsWillSync: function(){
-    var scrollingView;
-    scrollingView = get(this, '_scrollingView');
-    this.removeObject(scrollingView);
-  },
-
-  childViewsDidSync: function(){
-    var scrollingView;
-
-    scrollingView = get(this, '_scrollingView');
-
-    if (!scrollingView) {
-      scrollingView =  createScrollingView();
-      this.set('_scrollingView', scrollingView);
-    }
-
-    this.pushObject(scrollingView);
   }
 });
