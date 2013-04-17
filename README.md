@@ -138,5 +138,6 @@ Run ```bundle exec rackup``` and open [http://localhost:9292](http://localhost:9
 + [Luke Melia](https://github.com/lukemelia)
 + [Erik Bryn](https://github.com/ebryn)
 + [Alex Navasardyan](https://github.com/2k00l)
++ [Sebastian Seilund](https://github.com/sebastianseilund)
 
 A lot of the work was sponsored by [Yapp Labs](https://www.yapp.us/).
