@@ -9,7 +9,11 @@ phase of a scroll nor do the elements know there offset top during that scroll p
 ## Dependecies
 
 You will need to include [jquery](http://jquery.com/), [handlebars](http://handlebarsjs.com),
-[ember.js](http://emberjs.com) and list view extension. 
+[ember.js](http://emberjs.com) and list view extension.
+
+## Examples
+
+```cd examples && python -m SimpleHTTPServer 4444```. Open [http://localhost:4444](http://localhost:4444).
 
 ## Usage
 
