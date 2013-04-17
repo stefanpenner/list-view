@@ -15,12 +15,12 @@
       <ul class="examples-list">
         <li>
           <h2>List View Demo</h2>
-          {{#collection Ember.ListView contentBinding="controller" height=500 rowHeight=50}}
+          {{#collection Ember.ListView contentBinding="controller" height=500 rowHeight=50 width=500}}
             {{name}}
           {{/collection}}
         </li>
         <li>
-          <h2>List View Demo (Ember.ListItemView)</h2>
+          <h2>List View Demo</h2>
           {{view App.ListView contentBinding="content"}}
         </li>
       </ul>
@@ -47,6 +47,7 @@
 
       App.ListView = Ember.ListView.extend({
         height: 500,
+        width: 500,
         rowHeight: 20,
         itemViewClass: Ember.ListItemView.extend({templateName: "list_item"})
       });
