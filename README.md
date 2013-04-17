@@ -46,7 +46,7 @@ App.IndexRoute = Ember.Route.extend({
 
 Shazam! You should be able to see a scrollable area with 10,000 items in it.
 
-![](/screens/list.png)
+![](screenshots/list.png)
 
 ## Subclassing
 
@@ -107,7 +107,7 @@ App.ListView = Ember.ListView.extend({
 });
 ```
 
-![](/screens/grid.png)
+![](screenshots/grid.png)
 
 ### Required CSS
 
@@ -121,16 +121,6 @@ App.ListView = Ember.ListView.extend({
 }
 ```
 
-## List of contributors
-
-+ [Ray Cohen](https://github.com/raycohen)
-+ [Stefan Penner](https://github.com/stefanpenner)
-+ [Luke Melia](https://github.com/lukemelia)
-+ [Erik Bryn](https://github.com/ebryn)
-+ [Alex Navasardyan](https://github.com/2k00l)
-
-A lot of the work was sponsored by [Yapp Labs](https://www.yapp.us/).
-
 ## How it works
 
 `Ember.ListView` will create enough rows to fill the visible area (as defined by the `height` property). It reacts to scroll events and reuses/repositions the rows as scrolled.
@@ -140,3 +130,13 @@ Please look at the [unit tests](https://github.com/emberjs/list-view/blob/master
 ## Running unit tests
 
 Run ```bundle exec rackup``` and open [http://localhost:9292](http://localhost:9292) in a browser.
+
+## Contributors
+
++ [Ray Cohen](https://github.com/raycohen)
++ [Stefan Penner](https://github.com/stefanpenner)
++ [Luke Melia](https://github.com/lukemelia)
++ [Erik Bryn](https://github.com/ebryn)
++ [Alex Navasardyan](https://github.com/2k00l)
+
+A lot of the work was sponsored by [Yapp Labs](https://www.yapp.us/).
