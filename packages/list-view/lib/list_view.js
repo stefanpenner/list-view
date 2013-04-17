@@ -57,7 +57,13 @@ Ember.ListViewMixin = Ember.Mixin.create({
     this._syncChildViews();
     this.columnCountDidChange();
   },
+  /**
+    Ember.ComputedProperty
 
+    @property style
+    @for Ember.ListView
+    @type String
+  */
   style: Ember.computed('height', 'width', function() {
     var height, width, style;
 
@@ -98,6 +104,13 @@ Ember.ListViewMixin = Ember.Mixin.create({
   touchMove: Ember.K,
   mouseWheel: Ember.K,
 
+  /**
+    Called when the element of the view is going to be destroyed. Override
+    this function to do any teardown that requires an element, like removing
+    event listeners.
+
+    @event willDestroyElement
+  */
   willDestroyElement: function() {
     var element;
 
@@ -149,7 +162,13 @@ Ember.ListViewMixin = Ember.Mixin.create({
 
   childViewsWillSync: Ember.K,
   childViewsDidSync: Ember.K,
+  /**
+    Ember.ComputedProperty
 
+    @property totalHeight
+    @for Ember.ListView
+    @type Number
+  */
   totalHeight: Ember.computed('content.length', 'rowHeight', 'columnCount', function() {
     var contentLength, rowHeight, columnCount;
 
@@ -213,7 +232,13 @@ Ember.ListViewMixin = Ember.Mixin.create({
 
     return min(contentLength, childViewCountForHeight);
   },
+  /**
+    Ember.ComputedProperty
 
+    @property columnCount
+    @for Ember.ListView
+    @type Number
+  */
   columnCount: Ember.computed('width', 'elementWidth', function() {
     var elementWidth, width, count;
 
@@ -314,12 +339,11 @@ Ember.ListViewMixin = Ember.Mixin.create({
    },
 
   /**
-   @private
+    Intelligently manages the number of childviews.
 
-   Intelligently manages the number of childviews.
-
-   @method _syncChildViews
-   **/
+    @private
+    @method _syncChildViews
+  */
   _syncChildViews: function(){
     var itemViewClass, startingIndex, childViewCount,
         endingIndex, numberOfChildViews, numberOfChildViewsNeeded,
@@ -415,7 +439,10 @@ function notifyMutationListeners() {
 }
 
 /**
-  ListView
+  The `Ember.ListView` renders a
+  [div](https://developer.mozilla.org/en-US/docs/HTML/Element/div) element.
+  Note, this div will have `ember-list-view` CSS class associated with it.
+  This class is required.
 
   @class ListView
   @namespace Ember
