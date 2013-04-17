@@ -46,6 +46,8 @@ App.IndexRoute = Ember.Route.extend({
 
 Shazam! You should be able to see a scrollable area with 10,000 items in it.
 
+![](/screens/list.png)
+
 ## Subclassing
 
 Here's an example of how to create your version of ```Ember.ListView```.
@@ -105,6 +107,8 @@ App.ListView = Ember.ListView.extend({
 });
 ```
 
+![](/screens/grid.png)
+
 ### Required CSS
 
 ``` css
@@ -116,6 +120,16 @@ App.ListView = Ember.ListView.extend({
   position: absolute;
 }
 ```
+
+## List of contributors
+
++ [Ray Cohen](https://github.com/raycohen)
++ [Stefan Penner](https://github.com/stefanpenner)
++ [Luke Melia](https://github.com/lukemelia)
++ [Erik Bryn](https://github.com/ebryn)
++ [Alex Navasardyan](https://github.com/2k00l)
+
+A lot of the work was sponsored by [Yapp Labs](https://www.yapp.us/).
 
 ## How it works
 
