@@ -24,6 +24,7 @@ function updateScrollerDimensions(target) {
   @namespace Ember
 */
 Ember.VirtualListView = Ember.ContainerView.extend(Ember.ListViewMixin, {
+  _isScrolling: false,
   css: {
     position: 'relative',
     overflow: 'hidden'
@@ -33,7 +34,7 @@ Ember.VirtualListView = Ember.ContainerView.extend(Ember.ListViewMixin, {
     this._super();
     this.setupScroller();
   },
-
+  _scrollerTop: 0,
   applyTransform: Ember.ListViewHelper.applyTransform,
 
   setupScroller: function(){
@@ -47,6 +48,7 @@ Ember.VirtualListView = Ember.ContainerView.extend(Ember.ListViewMixin, {
       if (view.listContainerElement) {
         view.applyTransform(view.listContainerElement, {x: 0, y: -top});
         y = max(0, top);
+        set(view, '_scrollerTop', y);
         view._scrollContentTo(y);
       }
     }, {
@@ -87,15 +89,22 @@ Ember.VirtualListView = Ember.ContainerView.extend(Ember.ListViewMixin, {
   },
 
   continueScroll: function(touches, timeStamp) {
+    var startingScrollTop, endingScrollTop, event;
+
     if (this._isScrolling) {
       this.scroller.doTouchMove(touches, timeStamp);
     } else {
-      var startingScrollTop = this.get('scrollTop');
+      startingScrollTop = get(this, 'scrollerTop');
+
       this.scroller.doTouchMove(touches, timeStamp);
-      var endingScrollTop = this.get('scrollTop');
+
+      endingScrollTop = this._scrollerTop;
+
       if (startingScrollTop !== endingScrollTop) {
-        var e = Ember.$.Event("scrollerstart");
-        Ember.$(touches[0].target).trigger(e);
+        console.log('bro');
+        event = Ember.$.Event("scrollerstart");
+        Ember.$(touches[0].target).trigger(event);
+
         this._isScrolling = true;
       }
     }
@@ -148,6 +157,7 @@ Ember.VirtualListView = Ember.ContainerView.extend(Ember.ListViewMixin, {
   },
 
   mouseDown: function(e){
+    window.MOUSE_DOWN = true;
     this.willBeginScroll([e], e.timeStamp);
     return false;
   },

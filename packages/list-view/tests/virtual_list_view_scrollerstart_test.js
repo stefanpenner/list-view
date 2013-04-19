@@ -2,7 +2,6 @@ var css, view, helper, nextTopPosition;
 
 require('list-view/~tests/test_helper');
 helper = window.helper;
-nextTopPosition = 0;
 
 function Scroller(callback, opts){
   this.callback = callback;
@@ -67,7 +66,6 @@ test("When scrolling begins, fire a scrollerstart event on the original target",
 
   Ember.run(function(){
     view.touchStart(Ember.$.Event('touchstart'));
-    nextTopPosition = nextTopPosition + 1;
     view.touchMove(Ember.$.Event('touchmove', {
       touches: [{target: childElement }]
     }));
@@ -94,11 +92,9 @@ test("fire scrollerstart event only once per scroll session", function() {
 
   Ember.run(function(){
     view.touchStart(Ember.$.Event('touchstart'));
-    nextTopPosition = nextTopPosition + 1;
     view.touchMove(Ember.$.Event('touchmove', {
       touches: [{target: childElement }]
     }));
-    nextTopPosition = nextTopPosition + 1;
     view.touchMove(Ember.$.Event('touchmove', {
       touches: [{target: childElement }]
     }));
@@ -109,7 +105,6 @@ test("fire scrollerstart event only once per scroll session", function() {
   Ember.run(function(){
     view.touchEnd(Ember.$.Event('touchend'));
     view.touchStart(Ember.$.Event('touchstart'));
-    nextTopPosition = nextTopPosition + 1;
     view.touchMove(Ember.$.Event('touchmove', {
       touches: [{target: childElement }]
     }));
@@ -131,13 +126,13 @@ test("doesn't fire scrollerstart event when view did not actually scroll vertica
 
   var childElement = view.$('.ember-list-item-view')[0],
       scrollerstartCount = 0;
+
   Ember.$(document).on("scrollerstart", function(e){
     scrollerstartCount = scrollerstartCount + 1;
   });
 
   Ember.run(function(){
     view.touchStart(Ember.$.Event('touchstart'));
-    nextTopPosition = 0; // simulating a touch that does not result in a vertical scroll
     view.touchMove(Ember.$.Event('touchmove', {
       touches: [{target: childElement }]
     }));
@@ -146,7 +141,6 @@ test("doesn't fire scrollerstart event when view did not actually scroll vertica
   equal(scrollerstartCount, 0, "scrollerstart should not fire if view did not scroll");
 
   Ember.run(function(){
-    nextTopPosition = nextTopPosition + 1;
     view.touchMove(Ember.$.Event('touchmove', {
       touches: [{target: childElement }]
     }));
