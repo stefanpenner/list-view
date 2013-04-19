@@ -2,11 +2,13 @@ var css, view, helper, nextTopPosition;
 
 require('list-view/~tests/test_helper');
 helper = window.helper;
+nextTopPosition = 0;
 
 function Scroller(callback, opts){
   this.callback = callback;
   this.opts = opts;
   this.scrollTo = function(left, top, zoom) {
+    view._scrollerTop = top;
     view._scrollContentTo(Math.max(0, top));
   };
   this.setDimensions = function() { };
@@ -65,6 +67,7 @@ test("When scrolling begins, fire a scrollerstart event on the original target",
   });
 
   Ember.run(function(){
+    nextTopPosition = nextTopPosition + 1;
     view.touchStart(Ember.$.Event('touchstart'));
     view.touchMove(Ember.$.Event('touchmove', {
       touches: [{target: childElement }]
@@ -91,6 +94,7 @@ test("fire scrollerstart event only once per scroll session", function() {
   });
 
   Ember.run(function(){
+    nextTopPosition = nextTopPosition + 1;
     view.touchStart(Ember.$.Event('touchstart'));
     view.touchMove(Ember.$.Event('touchmove', {
       touches: [{target: childElement }]
@@ -104,6 +108,7 @@ test("fire scrollerstart event only once per scroll session", function() {
 
   Ember.run(function(){
     view.touchEnd(Ember.$.Event('touchend'));
+    nextTopPosition = nextTopPosition + 1;
     view.touchStart(Ember.$.Event('touchstart'));
     view.touchMove(Ember.$.Event('touchmove', {
       touches: [{target: childElement }]
@@ -132,6 +137,7 @@ test("doesn't fire scrollerstart event when view did not actually scroll vertica
   });
 
   Ember.run(function(){
+    nextTopPosition = 0;
     view.touchStart(Ember.$.Event('touchstart'));
     view.touchMove(Ember.$.Event('touchmove', {
       touches: [{target: childElement }]
@@ -141,6 +147,7 @@ test("doesn't fire scrollerstart event when view did not actually scroll vertica
   equal(scrollerstartCount, 0, "scrollerstart should not fire if view did not scroll");
 
   Ember.run(function(){
+    nextTopPosition = nextTopPosition + 1;
     view.touchMove(Ember.$.Event('touchmove', {
       touches: [{target: childElement }]
     }));
@@ -150,3 +157,30 @@ test("doesn't fire scrollerstart event when view did not actually scroll vertica
 
   Ember.$(document).off("scrollerstart");
 });
+
+test("When pulling below zero, still fire a scrollerstart event", function() {
+  expect(1);
+  view = Ember.VirtualListView.create({
+    content: helper.generateContent(4),
+    height: 150,
+    rowHeight: 50
+  });
+
+  appendView();
+
+  var childElement = view.$('.ember-list-item-view')[0];
+  Ember.$(document).on("scrollerstart", function(e){
+    ok(true, "fired scrollerstart");
+  });
+
+  Ember.run(function(){
+    nextTopPosition = nextTopPosition - 10;
+    view.touchStart(Ember.$.Event('touchstart'));
+    view.touchMove(Ember.$.Event('touchmove', {
+      touches: [{target: childElement }]
+    }));
+  });
+
+  Ember.$(document).off("scrollerstart");
+});
+
